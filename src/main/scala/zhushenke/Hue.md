@@ -8,13 +8,14 @@ Hue学习笔记
 [root@hadoop ~]# yum -y install gcc libxml2-devel cyrus-sasl-devel cyrus-sasl-gssapi \
 mysql-devel python-setuptools ant libsasl2-dev libsasl2-modules-gssapi-mit \
 libkrb5-dev libtidy-0.99-0 openldap-dev libldap2-dev python-devel openssl-devel libxslt-devel gmp-devel \
-sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
+sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain==
 [hadoop@hadoop hue]$ make apps
 [hadoop@hadoop hue]$ chmod 755 ../app/hue -R
 ```
 - 软件配置测试
 ```
 [hadoop@hadoop hue]$ cp ./desktop/conf/hue.ini ./desktop/conf/hue.ini.bak
+#配置访问的地址及端口信息
 [hadoop@hadoop hue]$ vi ./desktop/conf/hue.ini
   # Set this to a random string, the longer the better.
   # This is used for secure hashing in the session store.
@@ -29,10 +30,12 @@ sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
   # This should be the hadoop cluster admin
   default_hdfs_superuser=hadoop
 
+#启动 hue, 第一次需要登录配置的用户为超级用户
 [hadoop@hadoop hue]$ ./build/env/bin/supervisors
 ```
 ![](../../resources/image/hue-1.jpg)
 ```
+#配置 hdfs 与 hue 的集合
 [hadoop@hadoop hue]$ vi /hadoop/app/hadoop/etc/hadoop/core-site.conf
 <property>
     <name>hadoop.proxyuser.hue.hosts</name>
@@ -76,11 +79,13 @@ sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
       hadoop_conf_dir=/hadoop/app/hadoop/etc/hadoop
       hadoop_hdfs_home=/hadoop/app/hadoop
       hadoop_bin=/hadoop/app/hadoop/bin
+#启动 hdfs 后进行测试,在 hue 界面能看到 hdfs 内容并能上传下载即成功
 [hadoop@hadoop hue]$ /hadoop/app/hadoop/sbin/start-all.sh
 [hadoop@hadoop hue]$ ./build/env/bin/supervisors
 ```
 ![](../../resources/image/hue-2.jpg)
 ```
+#配置 yarn 与 hue 的集合
 [hadoop@hadoop hue]$ vi ./desktop/conf/hue.ini
 # Configuration for YARN (MR2)
   # ------------------------------------------------------------------------
@@ -110,10 +115,12 @@ sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
 
       # URL of the HistoryServer API
       history_server_api_url=http://hadoop:19888
+#重启 hue 后能看到 job browser 即可
 [hadoop@hadoop hue]$ ./build/env/bin/supervisors
 ```
 ![](../../resources/image/hue-3.png)
 ```
+#配置 hive 与 hue 的集合
 [hadoop@hadoop hue]$ vi ./desktop/conf/hue.ini
 [beeswax]
 
@@ -127,12 +134,14 @@ sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
   # Hive configuration directory, where hive-site.xml is located
   hive_conf_dir=/hadoop/app/hive/conf
   hive_home_dir=/hadoop/app/hive
+#启动 hive2 及重启 hue, 能执行 hive 查询即可
 [hadoop@hadoop hue]$ /hadoop/app/hive/bin/hive --service metastore &
 [hadoop@hadoop hue]$ /hadoop/app/hive/bin/hive --service hiveserver2 &
 [hadoop@hadoop hue]$ ./build/env/bin/supervisors
 ```
 ![](../../resources/image/hue-4.jpg)
 ```
+#配置 mysql 与 hue 集合
 [hadoop@hadoop hue]$ vi ./desktop/conf/hue.ini
 [[[mysql]]]
   # Name to show in the UI.
@@ -164,6 +173,7 @@ sqlite-devel openldap-devel build-essential gcc-c++ libtidy cyrus-sasl-plain
   # Password matching the username to authenticate with when
   # connecting to the database.
   password=password
+#对 mysql.sock 进行链接,然后重启 hue, 能执行查询即可
 [root@hadoop ~]# ln -s /hadoop/app/mysql/data/mysql.sock /var/lib/mysql/mysql.sock
 [hadoop@hadoop hue]$ ./build/env/bin/supervisors
 ```
